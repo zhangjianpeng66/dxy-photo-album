@@ -31,41 +31,55 @@ export function setupInteractions(renderer, camera, cards, getState, setState) {
 
   window.addEventListener('pointermove', e => {
     if (!pointers.has(e.pointerId)) return;
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
+    // Get OLD position BEFORE updating
+    const oldP = pointers.get(e.pointerId);
     const s = getState();
+
     if (pointers.size === 1) {
       // Single finger: rotate
-      const p0 = [...pointers.values()][0];
-      const dx = e.clientX - cStart.x;
-      const dy = e.clientY - cStart.y;
-      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
-        s.targetRotY = s.targetRotY + (e.clientX - p0.x) * 0.004;
-        s.targetRotX = s.targetRotX + (e.clientY - p0.y) * 0.003;
+      const dx = e.clientX - oldP.x;
+      const dy = e.clientY - oldP.y;
+      if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
+        s.targetRotY += dx * 0.008;
+        s.targetRotX += dy * 0.005;
         s.targetRotX = Math.max(-1.2, Math.min(1.2, s.targetRotX));
         setState(s);
-        // Update pointer reference
-        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       }
     } else if (pointers.size === 2) {
-      // Two fingers: pinch zoom + vertical swipe for layout
-      const dist = getPinchDist();
-      if (lastPinchDist > 0 && Math.abs(dist - lastPinchDist) > 5) {
-        s.targetZoom += (dist - lastPinchDist) * -0.02;
+      // Two fingers: pinch → zoom, or vertical swipe → switch layout
+      const oldDist = getPinchDist();
+      const oldMid = getMidpoint();
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const newDist = getPinchDist();
+      const newMid = getMidpoint();
+
+      // Check if pinch (distance changed) or swipe (midpoint moved)
+      const distDelta = Math.abs(newDist - oldDist);
+      const vertDelta = Math.abs(newMid.y - oldMid.y);
+
+      if (distDelta > vertDelta && distDelta > 3) {
+        // Pinch: zoom
+        s.targetZoom += (newDist - oldDist) * -0.02;
         s.targetZoom = Math.max(4, Math.min(16, s.targetZoom));
         setState(s);
-      }
-      // Vertical swipe for layout change
-      const mid = getMidpoint();
-      const dy2 = mid.y - cStart.y;
-      if (Math.abs(dy2) > 60) {
-        s.targetLayout = ((s.targetLayout + (dy2 > 0 ? -1 : 1)) % LAYOUT_COUNT + LAYOUT_COUNT) % LAYOUT_COUNT;
+      } else if (vertDelta > distDelta && vertDelta > 40) {
+        // Two-finger vertical swipe: switch layout
+        s.targetLayout = ((s.targetLayout + (newMid.y < oldMid.y ? -1 : 1)) % LAYOUT_COUNT + LAYOUT_COUNT) % LAYOUT_COUNT;
         s.layoutT = 0;
-        cStart = mid;
+        // Reset all pointer positions to prevent repeated triggers
+        const pts = [...pointers.values()];
+        const midNow = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 };
+        for (const [id, p] of pointers) {
+          pointers.set(id, { x: p.x - (midNow.x - oldMid.x), y: p.y - (midNow.y - oldMid.y) });
+        }
         setState(s);
       }
-      lastPinchDist = dist;
+      return;
     }
+
+    // Update pointer position AFTER delta calculation
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   });
 
   window.addEventListener('pointerup', e => {
@@ -109,10 +123,11 @@ export function setupInteractions(renderer, camera, cards, getState, setState) {
   };
 }
 
-export function setupZoom(renderer, camera, cards, zoomOverlay, zoomCardEl, zoomBack, cStartRef) {
+export function setupZoom(renderer, camera, cards, zoomOverlay, zoomCardEl, zoomBack, cStartRef, switchLayout) {
   const raycaster = new THREE.Raycaster();
   const cMouse = new THREE.Vector2();
   let zoomed = null;
+  let lastTap = 0;
 
   function showZoom(info) {
     // Use original photo + text overlay in HTML/CSS (same layout as 3D card)
@@ -138,6 +153,15 @@ export function setupZoom(renderer, camera, cards, zoomOverlay, zoomCardEl, zoom
     if (!cStartRef) return;
     const cs = cStartRef();
     if (Math.abs(e.clientX - cs.x) > 4 || Math.abs(e.clientY - cs.y) > 4) return;
+
+    // Double-tap detection (400ms window)
+    const now = Date.now();
+    if (now - lastTap < 400) {
+      lastTap = 0;
+      if (switchLayout) { switchLayout(); return; }
+    }
+    lastTap = now;
+
     cMouse.x = (e.clientX / innerWidth) * 2 - 1;
     cMouse.y = -(e.clientY / innerHeight) * 2 + 1;
     raycaster.setFromCamera(cMouse, camera);

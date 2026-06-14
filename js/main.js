@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createStars } from './stars.js';
 import { createParticles, updateParticles } from './particles.js';
-import { createCards, LAYOUT_NAMES } from './cards.js';
+import { createCards, LAYOUT_NAMES, LAYOUT_COUNT } from './cards.js';
 import { setupInteractions, setupZoom } from './interactions.js';
 
 async function loadConfig() {
@@ -33,20 +33,7 @@ async function init() {
   // Particles
   const { container: pContainer, particles } = createParticles(scene);
 
-  // Preload all images before creating cards
-  const imageLoadPromises = config.cards.map(c => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve({ path: c.image, img });
-      img.onerror = () => resolve({ path: c.image, img: null });
-      img.src = c.image;
-    });
-  });
-  const loadedImages = await Promise.all(imageLoadPromises);
-  const imageMap = {};
-  loadedImages.forEach(({ path, img }) => { imageMap[path] = img; });
-
-  // Cards — map config format to internal format, attach loaded images
+  // Create cards immediately with placeholders, load photos async
   const cardInfos = config.cards.map(c => ({
     title_cn: c.title_cn,
     title_en: c.title_en,
@@ -54,9 +41,40 @@ async function init() {
     image: c.image,
     color: c.color,
     emoji: '📷',
-    loadedImg: imageMap[c.image] || null
+    loadedImg: null  // start with placeholder
   }));
   const { cardGroup, cards, layoutTargets } = createCards(scene, cardInfos);
+
+  // Load photos in background, update card textures when ready
+  config.cards.forEach((c, i) => {
+    const img = new Image();
+    img.onload = () => {
+      // Update the card texture with the loaded image
+      const card = cards[i];
+      if (!card) return;
+      const tex = card.material.map;
+      if (!tex || !tex.image) return;
+      const canvas = tex.image;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const w = 640, h = 400, M = 38;
+      const phL = M, phR = w/2 - M, phT = M, phB = h - M;
+      ctx.save();
+      ctx.beginPath(); ctx.roundRect(phL, phT, phR - phL, phB - phT, 8); ctx.clip();
+      ctx.drawImage(img, phL, phT, phR - phL, phB - phT);
+      ctx.restore();
+      // Re-apply vignette
+      const vignette = ctx.createRadialGradient((phL+phR)/2, (phT+phB)/2, (phR-phL)*0.3, (phL+phR)/2, (phT+phB)/2, (phR-phL)*0.75);
+      vignette.addColorStop(0, 'transparent');
+      vignette.addColorStop(1, 'rgba(2,0,8,0.65)');
+      ctx.fillStyle = vignette;
+      ctx.beginPath(); ctx.roundRect(phL, phT, phR - phL, phB - phT, 8); ctx.fill();
+      tex.needsUpdate = true;
+    };
+    img.onerror = () => {}; // keep placeholder on error
+    img.src = c.image;
+  });
 
   // State
   let curLayout = 0;
@@ -74,7 +92,8 @@ async function init() {
   const zoomCardEl = document.getElementById('zoom-card');
   const zoomBack = document.getElementById('zoom-back');
   setupZoom(renderer, camera, cards, zoomOverlay, zoomCardEl, zoomBack,
-    () => ({ x: interactions.cStart.x, y: interactions.cStart.y }));
+    () => ({ x: interactions.cStart.x, y: interactions.cStart.y }),
+    () => { state.targetLayout = (state.targetLayout + 1) % LAYOUT_COUNT; state.layoutT = 0; });
 
   // Hint fade
   setTimeout(() => { const h = document.getElementById('hint'); if (h) h.style.opacity = '0'; }, 5000);
