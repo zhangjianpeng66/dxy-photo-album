@@ -1,0 +1,22 @@
+{
+  "title": "dxy",
+  "subtitle": "forever lovers  jun zi hao qiu",
+  "cards": [
+    { "title_cn": "蓝调时刻", "title_en": "Blue Hour", "text": "她和湖，都很安静", "image": "photos/1.jpg", "color": "#304060" },
+    { "title_cn": "摸鱼ing", "title_en": "Chillin", "text": "晴窗偷闲，见她笑", "image": "photos/2.jpg", "color": "#405040" },
+    { "title_cn": "林间眨眼杀", "title_en": "Wink", "text": "限定winking，心动暴击", "image": "photos/3.jpg", "color": "#3a4030" },
+    { "title_cn": "我超可爱", "title_en": "So Cute", "text": "林间风日，偷闲一刻", "image": "photos/4.jpg", "color": "#403540" },
+    { "title_cn": "游玩黄鹤楼", "title_en": "Yellow Crane", "text": "风与茶，与她的侧颜", "image": "photos/5.jpg", "color": "#4a3a30" },
+    { "title_cn": "登高望远", "title_en": "High Above", "text": "楼中影，凭栏风，拂白裙角", "image": "photos/6.jpg", "color": "#354045" },
+    { "title_cn": "猪妞自恋中", "title_en": "Selfie Queen", "text": "干饭，顺便看她", "image": "photos/7.jpg", "color": "#403045" },
+    { "title_cn": "在干嘛～", "title_en": "What's Up", "text": "眉眼弯弯，又在偷偷卖萌", "image": "photos/8.jpg", "color": "#403040" },
+    { "title_cn": "樱语花墙", "title_en": "Sakura Wall", "text": "花满枝桠，她在其中", "image": "photos/9.jpg", "color": "#4a3545" },
+    { "title_cn": "花下许愿时", "title_en": "Wish Bloom", "text": "花下祈愿，岁岁皆甜", "image": "photos/10.jpg", "color": "#454050" },
+    { "title_cn": "强强联合", "title_en": "Power Couple", "text": "同框学习，半倍效率", "image": "photos/11.jpg", "color": "#404045" },
+    { "title_cn": "小猫宝宝", "title_en": "Kitty Baby", "text": "特效一开，猫耳自拍", "image": "photos/12.jpg", "color": "#403545" },
+    { "title_cn": "心动节拍", "title_en": "Heartbeat", "text": "识卿桃花面，心弦自鸣", "image": "photos/13.jpg", "color": "#4a3045" },
+    { "title_cn": "花与告白", "title_en": "Confession", "text": "花前执手，心意相通", "image": "photos/14.jpg", "color": "#403540" },
+    { "title_cn": "天作之合", "title_en": "Made in Heaven", "text": "牵手并立，我们超配", "image": "photos/15.jpg", "color": "#3a4045" },
+    { "title_cn": "小小郡主", "title_en": "Princess", "text": "粉墙映雪，眉目含娇", "image": "photos/16.jpg", "color": "#403545" }
+  ]
+}

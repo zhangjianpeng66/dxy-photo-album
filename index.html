@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dxy · 梦幻相册</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="title-overlay">
+    <div id="main-title">dxy</div>
+    <div id="title-line"></div>
+    <div id="sub-title">forever lovers &nbsp; jun zi hao qiu</div>
+  </div>
+  <div id="hint">拖拽旋转 · 滚轮切换阵型 · 单击卡片放大</div>
+  <div id="layout-label"></div>
+  <div id="zoom-overlay">
+    <div id="zoom-card"></div>
+    <button id="zoom-back">Click to go back</button>
+  </div>
+  <div id="three-container"></div>
+  <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+  </script>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>
